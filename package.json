@@ -1,0 +1,20 @@
+{
+  "name": "link-lock",
+  "version": "0.1.0",
+  "description": "The inbox for links",
+  "private": true,
+  "workspaces": [
+    "packages/api",
+    "packages/web",
+    "packages/extension"
+  ],
+  "scripts": {
+    "api": "npm start --workspace=@link-lock/api",
+    "web": "npm run dev --workspace=@link-lock/web",
+    "build:web": "npm run build --workspace=@link-lock/web",
+    "build:ext": "npm run build --workspace=@link-lock/extension",
+    "generate-secret": "node scripts/generate-jwt-secret.js",
+    "verify-deployment": "node scripts/verify-deployment.js",
+    "migrate": "node migrate-to-postgres.js"
+  }
+}

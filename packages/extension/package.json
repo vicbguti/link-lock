@@ -1,0 +1,9 @@
+{
+  "name": "@link-lock/extension",
+  "version": "0.1.0",
+  "description": "Chrome extension for LinkLock",
+  "scripts": {
+    "build": "zip -r linklock-extension.zip src/ manifest.json -x '*.test.js'",
+    "pack": "npm run build"
+  }
+}
