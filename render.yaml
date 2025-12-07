@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: linklock-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start --workspace=@link-lock/api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: API_URL
+        fromService:
+          type: web
+          name: linklock-api
+          property: url
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: linklock-db
+          property: connectionString
+
+  - type: pserv
+    name: linklock-db
+    plan: free
+    ipAllowList: []
+
+  - type: static_site
+    name: linklock-web
+    buildCommand: npm run build --workspace=@link-lock/web
+    staticPublishPath: packages/web/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: linklock-api
+          property: url
