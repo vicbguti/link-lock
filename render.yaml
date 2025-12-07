@@ -5,13 +5,3 @@ services:
     plan: free
     buildCommand: npm install
     startCommand: npm start --workspace=@link-lock/api
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 3000
-
-  - type: pserv
-    name: linklock-db
-    plan: free
-    ipAllowList: []
