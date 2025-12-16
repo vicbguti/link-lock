@@ -33,15 +33,27 @@ async function migrate() {
     process.exit(1);
   }
 
-  // Connect to PostgreSQL
-  const pgPool = new Pool({ connectionString: databaseUrl });
+  // Connect to PostgreSQL with SSL for Render
+  const pgPool = new Pool({ 
+    connectionString: databaseUrl,
+    ssl: { rejectUnauthorized: false }
+  });
   
   try {
     console.log('✅ Connected to PostgreSQL');
 
+    // Drop existing tables first (clean slate)
+    try {
+      await pgPool.query('DROP TABLE IF EXISTS links CASCADE');
+      await pgPool.query('DROP TABLE IF EXISTS users CASCADE');
+      console.log('✅ Cleared existing tables');
+    } catch (err) {
+      // Ignore if tables don't exist
+    }
+
     // Create tables in PostgreSQL
     const createTableQueries = [
-      `CREATE TABLE IF NOT EXISTS users (
+      `CREATE TABLE users (
         id TEXT PRIMARY KEY,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
@@ -52,7 +64,7 @@ async function migrate() {
         "updatedAt" TEXT NOT NULL
       )`,
       
-      `CREATE TABLE IF NOT EXISTS links (
+      `CREATE TABLE links (
         id TEXT PRIMARY KEY,
         "userId" TEXT NOT NULL,
         url TEXT NOT NULL,

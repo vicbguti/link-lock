@@ -22,10 +22,7 @@ export default function Auth({ onAuthSuccess }) {
       localStorage.setItem('userId', response.data.userId);
       localStorage.setItem('email', response.data.email);
 
-      // Share token with extension
-      if (window.chrome?.storage) {
-        chrome.storage.local.set({ authToken: response.data.token });
-      }
+      // Token is automatically synced to extension via content.js
 
       onAuthSuccess(response.data);
     } catch (err) {

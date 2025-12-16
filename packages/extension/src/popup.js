@@ -1,6 +1,6 @@
 // Configuration - Update these when deploying to production
-const API_URL = 'http://localhost:3000';      // Change to https://api.linklock.app in production
-const WEB_URL = 'http://localhost:5173';      // Change to https://linklock.app in production
+const API_URL = 'https://linklock-api-hm2c.onrender.com';      // Change to https://api.linklock.app in production
+const WEB_URL = 'https://linklock-web.onrender.com';      // Change to https://linklock.app in production
 
 let currentTab = null;
 let authToken = null;
