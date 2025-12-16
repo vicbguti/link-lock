@@ -23,13 +23,13 @@ export async function createCheckoutSession(userId, email) {
     throw new Error('User not found');
   }
 
-  // Mock checkout for development
-  if (!stripe) {
+  // Mock checkout for development or if Stripe not fully configured
+  if (!stripe || !process.env.STRIPE_PRICE_ID) {
     // In development, immediately upgrade to pro
     await updateUserPlan(userId, 'pro');
     return {
       id: 'mock_session_' + userId,
-      url: 'http://localhost:5173?upgraded=true'
+      url: 'https://linklock-web.onrender.com/?upgraded=true'
     };
   }
 
