@@ -43,8 +43,8 @@ export async function createCheckoutSession(userId, email) {
       },
     ],
     mode: 'subscription',
-    success_url: 'http://localhost:5173?upgraded=true',
-    cancel_url: 'http://localhost:5173/pricing',
+    success_url: 'https://linklock-web.onrender.com/?upgraded=true',
+    cancel_url: 'https://linklock-web.onrender.com/pricing',
     customer_email: email,
     metadata: {
       userId,
