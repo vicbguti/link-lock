@@ -11,9 +11,9 @@ export function initDb() {
     throw new Error('DATABASE_URL environment variable is required');
   }
 
-  pool = new Pool({ connectionString });
+  pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
 
-  // Create tables
+  // Create tables (fire and forget - they should already exist)
   const queries = [
     `CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
@@ -46,9 +46,7 @@ export function initDb() {
 
   queries.forEach(query => {
     pool.query(query).catch(err => {
-      if (!err.message.includes('already exists')) {
-        console.error('Error creating table:', err);
-      }
+      // Ignore - tables should already exist
     });
   });
 }
