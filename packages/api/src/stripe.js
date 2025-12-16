@@ -1,4 +1,6 @@
-import { getUserById, updateUserPlan } from './db.js';
+// Use PostgreSQL in production, SQLite in development
+const dbModule = process.env.DATABASE_URL ? './db-postgres.js' : './db.js';
+const { getUserById, updateUserPlan } = await import(dbModule);
 
 let stripe = null;
 
@@ -13,7 +15,7 @@ if (process.env.STRIPE_SECRET_KEY) {
 }
 
 export async function createCheckoutSession(userId, email) {
-  const user = getUserById(userId);
+  const user = await getUserById(userId);
   if (!user) {
     throw new Error('User not found');
   }
@@ -21,7 +23,7 @@ export async function createCheckoutSession(userId, email) {
   // Mock checkout for development
   if (!stripe) {
     // In development, immediately upgrade to pro
-    updateUserPlan(userId, 'pro');
+    await updateUserPlan(userId, 'pro');
     return {
       id: 'mock_session_' + userId,
       url: 'http://localhost:5173?upgraded=true'
@@ -56,7 +58,7 @@ export async function handleStripeWebhook(event) {
       const subscription = event.data.object;
       const userId = subscription.metadata?.userId;
       if (userId && subscription.status === 'active') {
-        updateUserPlan(userId, 'pro');
+        await updateUserPlan(userId, 'pro');
       }
       break;
 
@@ -64,7 +66,7 @@ export async function handleStripeWebhook(event) {
       const deletedSub = event.data.object;
       const delUserId = deletedSub.metadata?.userId;
       if (delUserId) {
-        updateUserPlan(delUserId, 'free');
+        await updateUserPlan(delUserId, 'free');
       }
       break;
   }
