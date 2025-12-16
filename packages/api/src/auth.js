@@ -1,10 +1,12 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import * as dbSqlite from './db.js';
+import * as dbPostgres from './db-postgres.js';
 
 // Use PostgreSQL in production, SQLite in development
-const dbModule = process.env.DATABASE_URL ? './db-postgres.js' : './db.js';
-const { createUser, getUserByEmail, getUserById } = await import(dbModule);
+const db = process.env.DATABASE_URL ? dbPostgres : dbSqlite;
+const { createUser, getUserByEmail, getUserById } = db;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
 const TOKEN_EXPIRY = '30d';
