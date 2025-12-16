@@ -40,10 +40,10 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.get('/api/auth/me', authMiddleware, (req, res) => {
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
-    const user = getUserById(req.userId);
-    const linkCount = getLinkCount(req.userId);
+    const user = await getUserById(req.userId);
+    const linkCount = await getLinkCount(req.userId);
     res.json({ ...user, linkCount });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -51,7 +51,7 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
 });
 
 // UPDATE profile (username, public/private)
-app.patch('/api/auth/profile', authMiddleware, (req, res) => {
+app.patch('/api/auth/profile', authMiddleware, async (req, res) => {
   try {
     const { username, isPublic } = req.body;
     
@@ -59,8 +59,8 @@ app.patch('/api/auth/profile', authMiddleware, (req, res) => {
       return res.status(400).json({ error: 'Username must be at least 3 characters' });
     }
 
-    updateUserProfile(req.userId, username, isPublic);
-    const updated = getUserById(req.userId);
+    await updateUserProfile(req.userId, username, isPublic);
+    const updated = await getUserById(req.userId);
     res.json(updated);
   } catch (err) {
     if (err.message.includes('UNIQUE constraint failed')) {
@@ -71,16 +71,16 @@ app.patch('/api/auth/profile', authMiddleware, (req, res) => {
 });
 
 // PUBLIC: Get user profile and links
-app.get('/api/public/:username', (req, res) => {
+app.get('/api/public/:username', async (req, res) => {
   try {
     const { username } = req.params;
-    const user = getUserByUsername(username);
+    const user = await getUserByUsername(username);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const links = getPublicUserLinks(username);
+    const links = await getPublicUserLinks(username);
     res.json({
       user: {
         id: user.id,
@@ -95,13 +95,17 @@ app.get('/api/public/:username', (req, res) => {
 });
 
 // PROTECTED ROUTES
-app.get('/api/links', authMiddleware, (req, res) => {
-  const links = getLinks(req.userId);
-  res.json(links);
+app.get('/api/links', authMiddleware, async (req, res) => {
+  try {
+    const links = await getLinks(req.userId);
+    res.json(links);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST new link (with limit check)
-app.post('/api/links', authMiddleware, (req, res) => {
+app.post('/api/links', authMiddleware, async (req, res) => {
   const { url, screenshot, title, folder } = req.body;
   
   if (!url) {
@@ -109,8 +113,8 @@ app.post('/api/links', authMiddleware, (req, res) => {
   }
 
   try {
-    const user = getUserById(req.userId);
-    const linkCount = getLinkCount(req.userId);
+    const user = await getUserById(req.userId);
+    const linkCount = await getLinkCount(req.userId);
     
     // Check free tier limit
     if (user.plan === 'free' && linkCount >= 500) {
@@ -127,7 +131,7 @@ app.post('/api/links', authMiddleware, (req, res) => {
       createdAt: new Date().toISOString(),
     };
 
-    saveLink(link);
+    await saveLink(link);
     res.status(201).json(link);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -135,7 +139,7 @@ app.post('/api/links', authMiddleware, (req, res) => {
 });
 
 // PATCH move link to folder
-app.patch('/api/links/:linkId/folder', authMiddleware, (req, res) => {
+app.patch('/api/links/:linkId/folder', authMiddleware, async (req, res) => {
   const { linkId } = req.params;
   const { folder } = req.body;
 
@@ -144,7 +148,7 @@ app.patch('/api/links/:linkId/folder', authMiddleware, (req, res) => {
   }
 
   try {
-    updateLinkFolder(linkId, folder);
+    await updateLinkFolder(linkId, folder);
     res.json({ id: linkId, folder });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -152,11 +156,11 @@ app.patch('/api/links/:linkId/folder', authMiddleware, (req, res) => {
 });
 
 // DELETE link
-app.delete('/api/links/:linkId', authMiddleware, (req, res) => {
+app.delete('/api/links/:linkId', authMiddleware, async (req, res) => {
   const { linkId } = req.params;
 
   try {
-    deleteLink(linkId);
+    await deleteLink(linkId);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -164,17 +168,17 @@ app.delete('/api/links/:linkId', authMiddleware, (req, res) => {
 });
 
 // TOGGLE private
-app.patch('/api/links/:linkId/privacy', authMiddleware, (req, res) => {
+app.patch('/api/links/:linkId/privacy', authMiddleware, async (req, res) => {
   const { linkId } = req.params;
   const { isPrivate } = req.body;
 
   try {
-    const user = getUserById(req.userId);
+    const user = await getUserById(req.userId);
     if (user.plan !== 'pro') {
       return res.status(403).json({ error: 'Private folders require Pro plan' });
     }
 
-    toggleLinkPrivacy(linkId, isPrivate);
+    await toggleLinkPrivacy(linkId, isPrivate);
     res.json({ id: linkId, isPrivate });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -182,16 +186,16 @@ app.patch('/api/links/:linkId/privacy', authMiddleware, (req, res) => {
 });
 
 // EXPORT links
-app.get('/api/export/:format', authMiddleware, (req, res) => {
+app.get('/api/export/:format', authMiddleware, async (req, res) => {
   const { format } = req.params;
-  const user = getUserById(req.userId);
+  const user = await getUserById(req.userId);
 
   if (user.plan !== 'pro') {
     return res.status(403).json({ error: 'Export requires Pro plan' });
   }
 
   try {
-    const data = exportUserLinks(req.userId, format);
+    const data = await exportUserLinks(req.userId, format);
     const filename = `linklock-export-${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'json'}`;
     
     res.header('Content-Disposition', `attachment; filename="${filename}"`);
@@ -205,7 +209,7 @@ app.get('/api/export/:format', authMiddleware, (req, res) => {
 // BILLING ENDPOINTS
 app.post('/api/billing/checkout', authMiddleware, async (req, res) => {
   try {
-    const user = getUserById(req.userId);
+    const user = await getUserById(req.userId);
     if (user.plan === 'pro') {
       return res.status(400).json({ error: 'Already on Pro plan' });
     }
