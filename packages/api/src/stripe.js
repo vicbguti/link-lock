@@ -1,6 +1,9 @@
+import * as dbSqlite from './db.js';
+import * as dbPostgres from './db-postgres.js';
+
 // Use PostgreSQL in production, SQLite in development
-const dbModule = process.env.DATABASE_URL ? './db-postgres.js' : './db.js';
-const { getUserById, updateUserPlan } = await import(dbModule);
+const db = process.env.DATABASE_URL ? dbPostgres : dbSqlite;
+const { getUserById, updateUserPlan } = db;
 
 let stripe = null;
 
