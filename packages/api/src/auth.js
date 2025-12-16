@@ -17,7 +17,7 @@ export async function registerUser(email, password) {
   }
 
   // Check if user already exists
-  const existing = getUserByEmail(email);
+  const existing = await getUserByEmail(email);
   if (existing) {
     throw new Error('Email already registered');
   }
@@ -27,7 +27,7 @@ export async function registerUser(email, password) {
 
   // Create user
   const userId = uuidv4();
-  createUser(userId, email, hashedPassword);
+  await createUser(userId, email, hashedPassword);
 
   // Return token
   const token = jwt.sign(
@@ -44,7 +44,7 @@ export async function loginUser(email, password) {
     throw new Error('Email and password are required');
   }
 
-  const user = getUserByEmail(email);
+  const user = await getUserByEmail(email);
   if (!user) {
     throw new Error('Invalid email or password');
   }
