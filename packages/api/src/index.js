@@ -209,14 +209,19 @@ app.get('/api/export/:format', authMiddleware, async (req, res) => {
 // BILLING ENDPOINTS
 app.post('/api/billing/checkout', authMiddleware, async (req, res) => {
   try {
+    console.log('Checkout endpoint called for userId:', req.userId);
     const user = await getUserById(req.userId);
+    console.log('User found:', user?.id, 'plan:', user?.plan);
+    
     if (user.plan === 'pro') {
       return res.status(400).json({ error: 'Already on Pro plan' });
     }
 
     const session = await createCheckoutSession(req.userId, req.email);
+    console.log('Session created:', session);
     res.json({ sessionId: session.id, url: session.url });
   } catch (err) {
+    console.error('Checkout error:', err);
     res.status(500).json({ error: err.message });
   }
 });
