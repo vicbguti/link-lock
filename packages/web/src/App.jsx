@@ -57,11 +57,11 @@ export default function App() {
       axios.get('/api/auth/me')
         .then(res => {
           setUser(res.data);
+          console.log('User plan after upgrade:', res.data.plan);
+          // Remove the param from URL
+          window.history.replaceState({}, document.title, window.location.pathname);
         })
         .catch(err => console.error('Failed to refresh user data:', err));
-      
-      // Remove the param from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [isAuthenticated]);
 
