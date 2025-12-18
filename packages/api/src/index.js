@@ -13,6 +13,23 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+
+// Stripe webhook MUST come before JSON parser
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const signature = req.headers['stripe-signature'];
+  
+  try {
+    console.log('Webhook received:', req.body.toString().substring(0, 100));
+    const event = verifyWebhookSignature(req.body, signature);
+    console.log('Webhook event type:', event.type);
+    await handleStripeWebhook(event);
+    res.json({ received: true });
+  } catch (err) {
+    console.error('Webhook error:', err.message);
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -223,21 +240,6 @@ app.post('/api/billing/checkout', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Checkout error:', err);
     res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const signature = req.headers['stripe-signature'];
-  
-  try {
-    console.log('Webhook received:', req.body.toString().substring(0, 100));
-    const event = verifyWebhookSignature(req.body, signature);
-    console.log('Webhook event type:', event.type);
-    await handleStripeWebhook(event);
-    res.json({ received: true });
-  } catch (err) {
-    console.error('Webhook error:', err.message);
-    res.status(400).json({ error: err.message });
   }
 });
 
