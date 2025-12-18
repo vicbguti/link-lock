@@ -49,6 +49,22 @@ export default function App() {
     }
   }, [isAuthenticated]);
 
+  // Check for upgrade param and refresh user data
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upgraded') === 'true' && isAuthenticated) {
+      // Refresh user data to get updated plan
+      axios.get('/api/auth/me')
+        .then(res => {
+          setUser(res.data);
+        })
+        .catch(err => console.error('Failed to refresh user data:', err));
+      
+      // Remove the param from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [isAuthenticated]);
+
   useEffect(() => {
     applyFilters();
   }, [links, selectedFolder, searchQuery]);
