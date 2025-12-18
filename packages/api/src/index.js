@@ -226,14 +226,17 @@ app.post('/api/billing/checkout', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const signature = req.headers['stripe-signature'];
   
   try {
+    console.log('Webhook received:', req.body.toString().substring(0, 100));
     const event = verifyWebhookSignature(req.body, signature);
-    handleStripeWebhook(event);
+    console.log('Webhook event type:', event.type);
+    await handleStripeWebhook(event);
     res.json({ received: true });
   } catch (err) {
+    console.error('Webhook error:', err.message);
     res.status(400).json({ error: err.message });
   }
 });
