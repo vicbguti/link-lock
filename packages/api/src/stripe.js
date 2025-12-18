@@ -26,7 +26,10 @@ export async function createCheckoutSession(userId, email) {
   // Mock checkout for development or if Stripe not fully configured
   if (!stripe || !process.env.STRIPE_PRICE_ID) {
     // In development, immediately upgrade to pro
+    console.log('Updating user plan to pro:', userId);
     await updateUserPlan(userId, 'pro');
+    const updatedUser = await getUserById(userId);
+    console.log('User after update:', updatedUser);
     return {
       id: 'mock_session_' + userId,
       url: 'https://linklock-web.onrender.com/?upgraded=true'
