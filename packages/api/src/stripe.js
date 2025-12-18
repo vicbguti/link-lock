@@ -68,7 +68,10 @@ export async function handleStripeWebhook(event) {
     case 'customer.subscription.updated':
       const subscription = event.data.object;
       const userId = subscription.metadata?.userId;
-      if (userId && subscription.status === 'active') {
+      console.log('Stripe webhook - subscription status:', subscription.status, 'userId:', userId);
+      // Accept active or incomplete (test mode) subscriptions
+      if (userId && (subscription.status === 'active' || subscription.status === 'incomplete')) {
+        console.log('Updating plan to pro for userId:', userId);
         await updateUserPlan(userId, 'pro');
       }
       break;
