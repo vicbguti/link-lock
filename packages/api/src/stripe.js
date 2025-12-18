@@ -52,6 +52,11 @@ export async function createCheckoutSession(userId, email) {
     metadata: {
       userId,
     },
+    subscription_data: {
+      metadata: {
+        userId,
+      },
+    },
   });
 
   return session;
